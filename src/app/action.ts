@@ -26,7 +26,7 @@ export async function getAvailableChannels() {
 		if (!(ch instanceof TextChannel)) return;
 
 		return {
-			name: ch.name,
+			name: ch.name + `[${ch.guild.name}]`,
 			id: ch.id,
 			exists: false,
 			type: "DISCORD"
