@@ -82,12 +82,13 @@ export default class CustomTelegraf extends Telegraf {
 	}
 
 	private onDis(e: Error, t: CustomTelegraf) {
-		if (!global.CT_BOTS[this.id]) {
+		if (!global.CT_BOTS[this.id] || e.message.includes("AbortSignal")) {
 			console.log("Ignored Bot", this.id);
 			return;
 		}
 
-		console.log(this.id, "Disconnected", e?.message ?? e);
+		console.log(this.id, "Disconnected");
+		console.error(e);
 		for (let disconnectEvent of this.disconnectEvents) {
 			try {
 				disconnectEvent(e, t);
