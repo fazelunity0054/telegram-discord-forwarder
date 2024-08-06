@@ -1,4 +1,6 @@
-@tailwind base;
+@layer {
+  @tailwind base;
+}
 @tailwind components;
 @tailwind utilities;
 
@@ -30,4 +32,8 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+*::marker {
+  display: none;
 }

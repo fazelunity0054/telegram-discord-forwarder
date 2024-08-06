@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model TelegramBotChannel {
+  id        Int     @id @default(autoincrement())
+  channelId String  @unique
+  chatId    String?
+  title     String?
+}
+
+model ForwardChannel {
+  id           String                     @id
+  type         ForwardChannelType
+  name         String
+  created_at   DateTime                   @default(now())
+  actions      ForwardAction[]
+  destinations ForwardActionDestination[]
+}
+
+enum ForwardChannelType {
+  DISCORD
+  TELEGRAM
+}
+
+model ForwardAction {
+  id           Int                        @id @default(autoincrement())
+  created_at   DateTime                   @default(now())
+  source       ForwardChannel             @relation(fields: [sourceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  sourceId     String                     @unique
+  destinations ForwardActionDestination[]
+}
+
+model ForwardActionDestination {
+  action        ForwardAction  @relation(fields: [actionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  actionId      Int
+  destination   ForwardChannel @relation(fields: [destinationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  destinationId String
+  results       ActionResult[]
+
+  @@unique(name: "id", [actionId, destinationId])
+}
+
+model ActionResult {
+  actionDestination ForwardActionDestination @relation(fields: [actionId, destinationId], references: [actionId, destinationId], onUpdate: Cascade, onDelete: Cascade)
+  actionId          Int
+  destinationId     String
+
+  sourceTrackId      String
+  destinationTrackId String   @unique
+  created_at         DateTime @default(now())
+
+  @@unique(name: "id", [sourceTrackId, destinationTrackId])
+}
