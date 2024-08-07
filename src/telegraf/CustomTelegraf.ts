@@ -9,7 +9,7 @@ declare global {
 		[key: string]: CustomTelegraf
 	}
 }
-if (!global.CT_BOTS) global.CT_BOTS = {};
+global.CT_BOTS ||= {};
 
 
 export default class CustomTelegraf extends Telegraf {
