@@ -58,9 +58,11 @@ export default class CustomTelegraf extends Telegraf {
 			}
 		}
 		this.on('channel_post', async e => {
+			console.log("CHANNEL RECEIVE");
 			await this.waitToReady().then(async (me) => {
 				await handle(e);
 				try {
+					console.log("CHANNEL ADDED");
 					await prisma.forwardChannel.upsert({
 						where: {
 							id: e.chat.id + "",
