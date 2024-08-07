@@ -1,5 +1,5 @@
+import {discordBot} from "../instrumentation";
 import {ClientEvents} from "discord.js";
-import {discordBot} from "../index";
 
 let REGISTERED: {
 	[k in keyof ClientEvents]?: (e: ClientEvents[k])=>void | undefined

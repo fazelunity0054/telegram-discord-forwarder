@@ -1,9 +1,9 @@
 'use server';
 
 import prisma from "../prisma/PrismaClient";
+import {discordBot} from "../instrumentation";
 import {TextChannel} from "discord.js";
 import {ForwardChannel} from ".prisma/client";
-import {discordBot} from "../index";
 
 type PrismaClient = typeof prisma;
 type PrismaModel = keyof PrismaClient;

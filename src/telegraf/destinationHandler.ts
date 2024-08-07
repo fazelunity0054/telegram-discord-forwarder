@@ -1,5 +1,4 @@
-import {telegramBot} from "../index";
-
+import {telegramBot} from "../instrumentation";
 
 export async function handleTelegramForwardWithPhoto(chatId: string, imageUrl: string,replyId?: number, content?: string) {
 	console.log(await telegramBot.telegram.callApi('sendPhoto', {

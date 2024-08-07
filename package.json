@@ -9,8 +9,7 @@
     "start": "next start -p 3344",
     "lint": "next lint",
     "nodemon": "nodemon ./src/index.ts",
-    "bot:dev": "ts-node ./src/watcher.ts",
-    "production": "next build && next start"
+    "bot:dev": "ts-node ./src/watcher.ts"
   },
   "dependencies": {
     "@mantine/core": "^7.11.2",

@@ -1,6 +1,6 @@
+import {telegramBot} from "../instrumentation";
 import {getActionOfSource, handleAction} from "../core/forwarder";
 import prisma from "../prisma/PrismaClient";
-import {telegramBot} from "../index";
 
 let count = 0;
 export function telegramEvents() {

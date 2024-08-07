@@ -29,14 +29,11 @@ export default class CustomTelegraf extends Telegraf {
 		this.telegram.getMe().then((me) => {
 			this.me = me;
 			this.launch(() => {
-				console.log("LAUNCH READY");
 				this.onReady.bind(this)(me);
 			}).catch((e) => {
-				console.log("CATCH IN LAUNCH EVENT");
 				this.onDis.bind(this)(e, this)
 			});
 		}).catch((e) => {
-			console.log("CATCH IN READY ME EVENT");
 			this.onDis.bind(this)(e, this)
 		});
 		global.CT_BOTS[this.id] = this;
@@ -60,11 +57,12 @@ export default class CustomTelegraf extends Telegraf {
 				console.error(e);
 			}
 		}
-		console.log("CHANNEL POST REGISTERED")
 		this.on('channel_post', async e => {
+			console.log("CHANNEL RECEIVE");
 			await this.waitToReady().then(async (me) => {
 				await handle(e);
 				try {
+					console.log("CHANNEL ADDED");
 					await prisma.forwardChannel.upsert({
 						where: {
 							id: e.chat.id + "",
@@ -86,8 +84,8 @@ export default class CustomTelegraf extends Telegraf {
 	}
 
 	private onDis(e: Error, t: CustomTelegraf) {
-		if (!global.CT_BOTS[this.id]) {
-			console.log(this.id,"Ignored",e);
+		if (!global.CT_BOTS[this.id] || e.message.includes("AbortSignal")) {
+			console.log("Ignored Bot", this.id);
 			return;
 		}
 
