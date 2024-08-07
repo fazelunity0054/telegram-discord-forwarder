@@ -2,8 +2,9 @@ import prisma from "../prisma/PrismaClient";
 import Discord, {TextChannel} from "discord.js";
 import {ForwardChannel} from ".prisma/client";
 import {handleTelegramForward, handleTelegramForwardWithPhoto} from "../telegraf/destinationHandler";
-import {discordBot, telegramBot} from "../instrumentation";
+
 import {SupportedMessage} from "./types";
+import {discordBot, telegramBot} from "../index";
 
 export async function getActionOfSource(id: string) {
 	return prisma.forwardAction.findFirst({
