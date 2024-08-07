@@ -73,7 +73,7 @@ export async function handleAction<Source extends ForwardChannel>(
 	}
 
 	const message = await convertMessageToBaseObject(destination, _message);
-
+	console.log("RECEIVE MESSAGE",message);
 	if (destination.type === "TELEGRAM") {
 		const replyId = message?.replied ? +message.replied : undefined;
 		const imageUrl = message.imageUrl;
