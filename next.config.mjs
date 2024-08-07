@@ -33,7 +33,8 @@ export default {
             "os": false,
             "ffmpeg-static": false,
             "ffmpeg-binaries": false,
-            "utf-8-validate": false
+            "utf-8-validate": false,
+            request: false
         };
 
         config.module.rules.push({
@@ -42,15 +43,18 @@ export default {
         })
         config.externals = [...config.externals, 'bcrypt','discord.js'];
 
-        config.optimization = {
-            ...config.optimization,
-            minimize: true,
-            minimizer: [
-                new TerserPlugin({
-                    exclude: /[\\/]node_modules[\\/](discord\.js)[\\/]/
-                })
-            ]
-        };
+        if (options.isServer) {
+            config.optimization = {
+                ...config.optimization,
+                minimize: false,
+                minimizer: [
+                    new TerserPlugin({
+                        exclude: /[\\/]node_modules[\\/](discord\.js)[\\/]/,
+                    }),
+                ],
+            };
+        }
+
         config.plugins.push(
             new webpack.NormalModuleReplacementPlugin(/node:/, (resource) => {
                 resource.request = resource.request.replace(/^node:/, "");
