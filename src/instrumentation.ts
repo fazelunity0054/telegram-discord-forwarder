@@ -3,6 +3,7 @@ import CustomTelegraf from "./telegraf/CustomTelegraf";
 import {unity_hotreload} from "./index";
 import prisma from "./prisma/PrismaClient";
 import {telegramEvents} from "./telegraf";
+import {escapeMarkdown} from "./app/utils";
 
 declare global {
 	var discordBot: Client | undefined;
@@ -51,33 +52,7 @@ export async function register() {
 		let LOGS: string[] = [];
 		const thread = setInterval(()=>{
 			if (!LOGS.length) return;
-			const SPECIAL_CHARS = [
-				'\\',
-				'_',
-				'*',
-				'[',
-				']',
-				'(',
-				')',
-				'~',
-				'>',
-				'<',
-				'&',
-				'#',
-				'+',
-				'-',
-				'=',
-				'|',
-				'{',
-				'}',
-				'.',
-				'!'
-			]
 
-			const escapeMarkdown = (text: string) => {
-				SPECIAL_CHARS.forEach(char => (text = text.replaceAll(char, `\\${char}`)))
-				return text
-			}
 			telegramBot.telegram.sendMessage(logChannel.id, escapeMarkdown(LOGS.join('\n\n')), {
 				parse_mode: "MarkdownV2"
 			}).catch(()=>undefined)

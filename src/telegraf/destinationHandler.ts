@@ -20,14 +20,18 @@ export async function handleTelegramForwardWithPhoto(chatId: string, imageUrl: s
 		photo: {
 			url: imageUrl,
 		},
-		chat_id: chatId
+		chat_id: chatId,
+		parse_mode: "Markdown"
 	}).catch(console.error).then(r => r ? r.message_id+"":undefined);
 }
 
 export async function handleTelegramForward(chatId: string, content: string, replyId?: number) {
-	return await telegramBot.telegram.sendMessage(chatId, content, replyId ? {
-		reply_parameters: {
-			message_id: replyId
-		}
-	} : undefined).catch(console.error).then(r => r ? r.message_id + "" : undefined)
+	return await telegramBot.telegram.sendMessage(chatId, content, {
+		...(replyId ? {
+			reply_parameters: {
+				message_id: replyId
+			}
+		} : {}),
+		parse_mode: "Markdown"
+	}).catch(console.error).then(r => r ? r.message_id + "" : undefined)
 }

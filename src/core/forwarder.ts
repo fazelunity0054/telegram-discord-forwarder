@@ -4,6 +4,7 @@ import {ForwardChannel} from ".prisma/client";
 import {handleTelegramForward, handleTelegramForwardWithPhoto} from "../telegraf/destinationHandler";
 import {discordBot, telegramBot} from "../instrumentation";
 import {SupportedMessage} from "./types";
+import {escapeMarkdown} from "../app/utils";
 
 export async function getActionOfSource(id: string) {
 	return prisma.forwardAction.findFirst({
@@ -77,6 +78,7 @@ export async function handleAction<Source extends ForwardChannel>(
 	if (destination.type === "TELEGRAM") {
 		const replyId = message?.replied ? +message.replied : undefined;
 		const imageUrl = message.imageUrl;
+		message.content = `*${escapeMarkdown(message.name)}* \n${escapeMarkdown(message.content || "")}`
 
 		if (imageUrl) {
 			return await handleTelegramForwardWithPhoto(destination.id, imageUrl, replyId, message.content);
