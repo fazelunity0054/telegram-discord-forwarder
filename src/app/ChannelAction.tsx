@@ -6,6 +6,7 @@ import {BasicChannelType} from "./page";
 import {isSource as checkSource} from "./utils";
 import {closeAllModals, modals} from "@mantine/modals";
 import {
+	deleteManyForward,
 	getAvailableChannels,
 	getDiscordCategories,
 	handleCategoryForward,
@@ -22,7 +23,7 @@ const ChannelAction = (props: BasicChannelType) => {
 
 	return (
 		<div className={'items-center flex gap-2'}>
-			{isSource && (
+			{isSource && props.source.type !== 'DISCORD_CATEGORY' && (
 				<Button onClick={() => {
 					modals.open({
 						title: "Add Destination",
@@ -43,21 +44,28 @@ const ChannelAction = (props: BasicChannelType) => {
 						</div>
 					),
 					onConfirm: () => {
-						prismaQuery(isSource ? "forwardAction" : "forwardActionDestination", "delete", {
-							where: isSource ? {
-								id: props.id
-							} : {
-								id: {
-									actionId: props.actionId,
-									destinationId: props.destinationId
+						if (isSource && props.source.type === "DISCORD_CATEGORY") {
+							deleteManyForward(props.destinations.map(o => 'source' in o ? o.source.id : '').filter(Boolean)).then(() => {
+								router.refresh()
+							})
+						} else {
+							prismaQuery(isSource ? "forwardAction" : "forwardActionDestination", "delete", {
+								where: isSource ? {
+									id: props.id
+								} : {
+									id: {
+										actionId: props.actionId,
+										destinationId: props.destinationId
+									}
 								}
-							}
-						} as any).then(() => {
-							router.refresh()
-						})
+							} as any).then(() => {
+								router.refresh()
+							})
+						}
 					}
 				})
-			}} color={'red'} variant={'transparent'}>
+			}
+			} color={'red'} variant={'transparent'}>
 				Del
 			</Button>
 		</div>
@@ -68,7 +76,7 @@ function SelectDestination(props: {
 	sourceId?: string,
 	discordCategory?: boolean
 }) {
-	const {result: categories} = usePromise(()=>getDiscordCategories(), props.discordCategory ? "DISCORD_CATEGORIES":false);
+	const {result: categories} = usePromise(() => getDiscordCategories(), props.discordCategory ? "DISCORD_CATEGORIES" : false);
 	const {result: channels, loading} = usePromise(() => getAvailableChannels());
 	const router = useRouter();
 
@@ -95,7 +103,7 @@ function SelectDestination(props: {
 					closeAllModals()
 				})
 			} else {
-				handleCategoryForward(json.source,json.destination).finally(() => {
+				handleCategoryForward(json.source, json.destination).finally(() => {
 					router.refresh();
 					closeAllModals()
 				})
@@ -104,12 +112,12 @@ function SelectDestination(props: {
 			<Select
 				key={loading + ""}
 				name={'source'}
-				disabled={props.discordCategory ? !categories:loading}
+				disabled={props.discordCategory ? !categories : loading}
 				label={'Source'}
 				searchable
 				required
 				defaultValue={props.sourceId}
-				data={props?.discordCategory ? categories?.map(o=>({label: o.name,value:o.id})):data}
+				data={props?.discordCategory ? categories?.map(o => ({label: o.name, value: o.id})) : data}
 			/>
 			<Select
 				name={'destination'}
@@ -129,21 +137,21 @@ function SelectDestination(props: {
 export const NewForward = () => {
 	return (
 		<div className={'w-full flex justify-center my-3 gap-2 flex-wrap'}>
-			<Button onClick={()=>{
+			<Button onClick={() => {
 				modals.open({
 					title: "Add Forward",
 					children: (
-						<SelectDestination />
+						<SelectDestination/>
 					)
 				})
 			}}>
 				New Forward
 			</Button>
-			<Button onClick={()=>{
+			<Button onClick={() => {
 				modals.open({
 					title: "Add Forward",
 					children: (
-						<SelectDestination discordCategory />
+						<SelectDestination discordCategory/>
 					)
 				})
 			}}>
@@ -152,7 +160,6 @@ export const NewForward = () => {
 		</div>
 	);
 };
-
 
 
 export default ChannelAction;

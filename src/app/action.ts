@@ -91,6 +91,19 @@ export async function handleCategoryForward(categoryId: string,destinationId: st
 	}));
 
 }
+
+export async function deleteManyForward(sources: string[]) {
+	return await prisma.forwardAction.deleteMany({
+		where: {
+			OR: sources.map(source => ({
+				source: {
+					id: source
+				}
+			}))
+		}
+	})
+}
+
 export async function getForwardChannel(id: string) {
 	const channels = await getAvailableChannels();
 

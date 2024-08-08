@@ -1,5 +1,5 @@
 import prisma from "../prisma/PrismaClient";
-import Discord, {TextChannel} from "discord.js";
+import Discord, {ChannelType} from "discord.js";
 import {ForwardChannel} from ".prisma/client";
 import {handleTelegramForward, handleTelegramForwardWithPhoto} from "../telegraf/destinationHandler";
 import {discordBot, telegramBot} from "../instrumentation";
@@ -25,9 +25,9 @@ export async function getActionOfSource(id: string) {
 
 
 export async function convertMessageToBaseObject(destination: ForwardChannel, message: SupportedMessage) {
-
+	const isWebhook = message instanceof Discord.Message && message.content.startsWith("Replied to");
 	const repliedTo = message instanceof Discord.Message ? (
-		message.webhookId ? message.content.split("\n").at(0)?.split("/")?.at(-1):message.reference?.messageId
+		isWebhook ? message.content.split("\n").at(0)?.split("/")?.at(-1):message.reference?.messageId
 	) : ((message as any)?.channelPost)?.reply_to_message?.message_id || message.update?.channel_post?.reply_to_message?.message_id;
 	const replyDestination = repliedTo ? (await prisma.actionResult.findFirst({
 		where: {
@@ -37,7 +37,7 @@ export async function convertMessageToBaseObject(destination: ForwardChannel, me
 	}))?.destinationTrackId : undefined;
 
 	if (message instanceof Discord.Message) {
-		if (message.webhookId && repliedTo) {
+		if (isWebhook && repliedTo) {
 			message.content = message.content.split("\n").slice(2).join("\n");
 		}
 		return {
@@ -82,10 +82,12 @@ export async function handleAction<Source extends ForwardChannel>(
 			return await handleTelegramForwardWithPhoto(destination.id, imageUrl, replyId, message.content);
 		} else if (message.content) {
 			return await handleTelegramForward(destination.id, message.content, replyId);
+		} else {
+			console.error("Message doesn't have content");
 		}
 	} else {
 		const channel = await discordBot.channels.fetch(destination.id).catch(console.error);
-		if (!channel || !channel.isTextBased() || !(channel instanceof TextChannel)) return;
+		if (!channel || channel.type !== ChannelType.GuildText) return;
 
 		const webhooks = await channel.fetchWebhooks();
 		const webhook = webhooks.first() || (await channel.createWebhook({

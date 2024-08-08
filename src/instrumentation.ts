@@ -2,6 +2,7 @@ import {Client} from "discord.js";
 import CustomTelegraf from "./telegraf/CustomTelegraf";
 import {unity_hotreload} from "./index";
 import prisma from "./prisma/PrismaClient";
+import {telegramEvents} from "./telegraf";
 
 declare global {
 	var discordBot: Client | undefined;
@@ -18,6 +19,7 @@ function stableTelegram() {
 		telegramBot = stableTelegram();
 		global.telegramBot = telegramBot;
 		await T.waitToReady();
+		telegramEvents();
 	})
 	return T;
 }
