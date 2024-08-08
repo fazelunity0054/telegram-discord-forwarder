@@ -40,10 +40,13 @@ export async function convertMessageToBaseObject(destination: ForwardChannel, me
 		if (isWebhook && repliedTo) {
 			message.content = message.content.split("\n").slice(2).join("\n");
 		}
+		const fromEmbed = message.embeds.find(e => !!(e.image ?? e.thumbnail));
+
 		return {
 			content: message.content+"" || undefined,
 			replied: replyDestination,
-			imageUrl: message.attachments.filter(e => e.contentType?.includes('image')).at(0)?.url,
+			imageUrl:
+				message.attachments.filter(e => e.contentType?.includes('image')).at(0)?.url ?? fromEmbed?.image?.url ?? fromEmbed?.thumbnail?.url,
 			avatar: message.author.avatarURL({
 				size: 64
 			}) || undefined,
