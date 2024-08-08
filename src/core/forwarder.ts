@@ -4,7 +4,6 @@ import {ForwardChannel} from ".prisma/client";
 import {handleTelegramForward, handleTelegramForwardWithPhoto} from "../telegraf/destinationHandler";
 import {discordBot, telegramBot} from "../instrumentation";
 import {SupportedMessage} from "./types";
-import {escapeMarkdown} from "../app/utils";
 
 export async function getActionOfSource(id: string) {
 	return prisma.forwardAction.findFirst({
@@ -75,10 +74,23 @@ export async function handleAction<Source extends ForwardChannel>(
 
 	const message = await convertMessageToBaseObject(destination, _message);
 	console.log(`Forwarding from ${source.name} to ${destination.name}: ${message?.content?.slice?.(0,50) || "NuLL"}`);
+
+	if (_message instanceof Discord.Message) {
+		[
+			...Array.from(_message.mentions.channels.values()),
+			...Array.from(_message.mentions.roles.values()),
+			...Array.from(_message.mentions.members?.values() || [])
+		].forEach((ch: any) => {
+			message.content = message.content?.replace(ch.toString(), ch.name ?? ch.displayName ?? ch?.user?.displayName ?? ch?.label ?? ch?.user?.username ?? ch?.nickname)
+		})
+	}
+
 	if (destination.type === "TELEGRAM") {
 		const replyId = message?.replied ? +message.replied : undefined;
 		const imageUrl = message.imageUrl;
-		message.content = `*${escapeMarkdown(message.name)}* \n${escapeMarkdown(message.content || "")}`
+		message.content = `*${message.name}*\n${message.content || ""}`
+
+
 
 		if (imageUrl) {
 			return await handleTelegramForwardWithPhoto(destination.id, imageUrl, replyId, message.content);
