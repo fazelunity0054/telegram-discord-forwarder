@@ -99,7 +99,7 @@ export async function handleAction<Source extends ForwardChannel>(
 
 		const reply = message.replied ? await channel.messages.fetch(message.replied).catch(()=>undefined):undefined;
 		if (reply) {
-			message.content = `Replied to ${reply.url}\n\n${message.content}`
+			message.content = `Replied to ${reply.url}\n\n${message.content || ""}`
 		}
 
 		return await webhook.send({
