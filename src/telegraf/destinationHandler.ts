@@ -1,36 +1,27 @@
 import {telegramBot} from "../instrumentation";
 
-export async function handleTelegramForwardWithPhoto(chatId: string, imageUrl: string,replyId?: number, content?: string) {
-	console.log("sendPhoto",replyId, content);
-	if (replyId) {
-		return await telegramBot.telegram.callApi('sendPhoto', {
-			...replyId && ({
-				reply_parameters: {
-					message_id: replyId
-				}
-			}),
-			...content && ({
-				caption: content
-			}),
-			photo: {
-				url: imageUrl
-			},
-			chat_id: chatId
-		}).catch(console.error).then(r=>r && 'message_id' in r ? r.message_id+"":undefined);
+const o = {reply_parameters: {message_id: 73, chat_id: -1002170940186}, caption: "undefined\nReplyId: 73", photo: {
+	url: "https://api.telegram.org/file/bot7246203885:AAF76_--EXN2sSfQz2D-K8x_QM_u2VRLS8o/photos/file_3.jpg"
+	}, chat_id: "-1002170940186"}
 
-	}
-	return await telegramBot.telegram.sendPhoto(chatId, {
-		url: imageUrl
-	}, {
+export async function handleTelegramForwardWithPhoto(chatId: string, imageUrl: string, replyId?: number, content?: string) {
+	return await telegramBot.telegram.callApi('sendPhoto', {
+		...replyId && ({
+			reply_parameters: {
+				message_id: replyId,
+				chat_id: +chatId
+			},
+			reply_to_message_id: replyId
+		}),
+
 		...content && ({
 			caption: content
 		}),
-		...replyId && ({
-			reply_parameters: {
-				message_id: replyId
-			}
-		}),
-	}).catch(console.error).then(r => r ? r.message_id+"":undefined)
+		photo: {
+			url: imageUrl,
+		},
+		chat_id: chatId
+	}).catch(console.error).then(r => r ? r.message_id+"":undefined);
 }
 
 export async function handleTelegramForward(chatId: string, content: string, replyId?: number) {
@@ -38,5 +29,5 @@ export async function handleTelegramForward(chatId: string, content: string, rep
 		reply_parameters: {
 			message_id: replyId
 		}
-	}:undefined).catch(console.error).then(r => r ? r.message_id+"":undefined)
+	} : undefined).catch(console.error).then(r => r ? r.message_id + "" : undefined)
 }

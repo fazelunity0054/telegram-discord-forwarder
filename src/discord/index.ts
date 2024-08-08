@@ -13,7 +13,10 @@ export function discordEvents() {
 
 		for (let {destination} of action.destinations) {
 			const result = await handleAction(action.source,e,destination);
-			if (!result) continue;
+			if (!result) {
+				console.error("RESULT DOESN'T SAVED")
+				continue;
+			}
 
 			await prisma.actionResult.create({
 				data: {

@@ -11,16 +11,21 @@ export function telegramEvents() {
 
 		for (let {destination} of action.destinations) {
 			const R = await handleAction(action.source, e, destination)
-			if (!R) continue;
-			await prisma.actionResult.create({
+			if (!R) {
+				console.log("IGNORED RESULT!");
+				continue;
+			}
+
+			const o = e as any;
+			const p = {
 				data: {
-					sourceTrackId: e.msgId+"",
+					sourceTrackId: (o?.message_id ?? e?.update?.message_id ?? e?.update?.channelPost?.message_id  ?? e?.msgId)+"",
 					destinationTrackId: R,
 					actionId: action.id,
 					destinationId: destination.id
 				}
-			})
+			};
+			await prisma.actionResult.create(p as any)
 		}
-
 	}
 }

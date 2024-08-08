@@ -28,7 +28,7 @@ export async function convertMessageToBaseObject(destination: ForwardChannel, me
 
 	const repliedTo = message instanceof Discord.Message ? (
 		message.webhookId ? message.content.split("\n").at(0)?.split("/")?.at(-1):message.reference?.messageId
-	) : (message as any)?.channelPost?.reply_to_message?.message_id;
+	) : ((message as any)?.channelPost)?.reply_to_message?.message_id || message.update?.channel_post?.reply_to_message?.message_id;
 	const replyDestination = repliedTo ? (await prisma.actionResult.findFirst({
 		where: {
 			destinationId: destination.id,
@@ -41,7 +41,7 @@ export async function convertMessageToBaseObject(destination: ForwardChannel, me
 			message.content = message.content.split("\n").slice(2).join("\n");
 		}
 		return {
-			content: message.content,
+			content: message.content+"" || undefined,
 			replied: replyDestination,
 			imageUrl: message.attachments.filter(e => e.contentType?.includes('image')).at(0)?.url,
 			avatar: message.author.avatarURL({
@@ -51,7 +51,7 @@ export async function convertMessageToBaseObject(destination: ForwardChannel, me
 		}
 	} else {
 		return {
-			content: message.text ?? (message.channelPost as any).caption,
+			content: (message.text ?? ((message.channelPost as any).caption as string | undefined) as string | undefined),
 			replied: replyDestination,
 			imageUrl: await telegramBot.telegram.getFileLink((message.channelPost as any)?.photo?.at(-1)?.file_id + "").then(r => r.toString()).catch(()=>undefined),
 			avatar: await telegramBot.telegram.getFileLink(
@@ -73,7 +73,7 @@ export async function handleAction<Source extends ForwardChannel>(
 	}
 
 	const message = await convertMessageToBaseObject(destination, _message);
-	console.log("RECEIVE MESSAGE",message);
+	console.log(`Forwarding from ${source.name} to ${destination.name}: ${message?.content?.slice?.(0,50) || "NuLL"}`);
 	if (destination.type === "TELEGRAM") {
 		const replyId = message?.replied ? +message.replied : undefined;
 		const imageUrl = message.imageUrl;
