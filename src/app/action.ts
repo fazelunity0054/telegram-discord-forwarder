@@ -2,7 +2,7 @@
 
 import prisma from "../prisma/PrismaClient";
 import {discordBot} from "../instrumentation";
-import {TextChannel} from "discord.js";
+import {ChannelType, TextChannel} from "discord.js";
 import {ForwardChannel} from ".prisma/client";
 
 type PrismaClient = typeof prisma;
@@ -43,9 +43,9 @@ export async function getAvailableChannels() {
 }
 
 
-export async function handleForwardRegister(sourceId: string, destinationId: string) {
-	const source = await getForwardChannel(sourceId);
-	const des = await getForwardChannel(destinationId);
+export async function handleForwardRegister(sourceId: string | ForwardChannel, destinationId: string | ForwardChannel) {
+	const source = typeof sourceId === 'string' ? await getForwardChannel(sourceId):sourceId;
+	const des = typeof destinationId === 'string' ? await getForwardChannel(destinationId):destinationId;
 
 	const action = await prisma.forwardAction.upsert({
 		where: {
@@ -69,10 +69,28 @@ export async function handleForwardRegister(sourceId: string, destinationId: str
 			actionId: action.id
 		},
 		update: {}
-	})
+	});
 }
 
+export async function getDiscordCategories() {
+	return Array.from(discordBot.channels.cache.filter(o => o.type === ChannelType.GuildCategory).values()).map(ch => ({
+		name: ch.name + `[${ch.guild.name}]`,
+		id: ch.id,
+		exists: false,
+		type: "DISCORD_CAT"
+	}))
+}
 
+export async function handleCategoryForward(categoryId: string,destinationId: string) {
+	const textChannels = Array.from(discordBot.channels.cache.filter(o =>o.type === ChannelType.GuildText).values());
+	const targets = textChannels.filter(t => t.parentId === categoryId);
+	const destination = await getForwardChannel(destinationId);
+
+	await Promise.all(targets.map(async t => {
+		return await handleForwardRegister(t.id,destination)
+	}));
+
+}
 export async function getForwardChannel(id: string) {
 	const channels = await getAvailableChannels();
 

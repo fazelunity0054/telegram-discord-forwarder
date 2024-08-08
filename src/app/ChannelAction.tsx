@@ -5,7 +5,13 @@ import {Button, Select} from "@mantine/core";
 import {BasicChannelType} from "./page";
 import {isSource as checkSource} from "./utils";
 import {closeAllModals, modals} from "@mantine/modals";
-import {getAvailableChannels, handleForwardRegister, prismaQuery} from "./action";
+import {
+	getAvailableChannels,
+	getDiscordCategories,
+	handleCategoryForward,
+	handleForwardRegister,
+	prismaQuery
+} from "./action";
 import {useRouter} from "next/navigation";
 import {usePromise} from "./hooks";
 
@@ -59,8 +65,10 @@ const ChannelAction = (props: BasicChannelType) => {
 };
 
 function SelectDestination(props: {
-	sourceId?: string
+	sourceId?: string,
+	discordCategory?: boolean
 }) {
+	const {result: categories} = usePromise(()=>getDiscordCategories(), props.discordCategory ? "DISCORD_CATEGORIES":false);
 	const {result: channels, loading} = usePromise(() => getAvailableChannels());
 	const router = useRouter();
 
@@ -81,20 +89,27 @@ function SelectDestination(props: {
 				return;
 			}
 
-			handleForwardRegister(json.source,json.destination).finally(()=>{
-				router.refresh();
-				closeAllModals()
-			})
+			if (!props.discordCategory) {
+				handleForwardRegister(json.source, json.destination).finally(() => {
+					router.refresh();
+					closeAllModals()
+				})
+			} else {
+				handleCategoryForward(json.source,json.destination).finally(() => {
+					router.refresh();
+					closeAllModals()
+				})
+			}
 		}}>
 			<Select
 				key={loading + ""}
 				name={'source'}
-				disabled={loading}
+				disabled={props.discordCategory ? !categories:loading}
 				label={'Source'}
 				searchable
 				required
 				defaultValue={props.sourceId}
-				data={data}
+				data={props?.discordCategory ? categories?.map(o=>({label: o.name,value:o.id})):data}
 			/>
 			<Select
 				name={'destination'}
@@ -113,7 +128,7 @@ function SelectDestination(props: {
 
 export const NewForward = () => {
 	return (
-		<div className={'w-full flex justify-center my-3'}>
+		<div className={'w-full flex justify-center my-3 gap-2 flex-wrap'}>
 			<Button onClick={()=>{
 				modals.open({
 					title: "Add Forward",
@@ -123,6 +138,16 @@ export const NewForward = () => {
 				})
 			}}>
 				New Forward
+			</Button>
+			<Button onClick={()=>{
+				modals.open({
+					title: "Add Forward",
+					children: (
+						<SelectDestination discordCategory />
+					)
+				})
+			}}>
+				DCategory Forward
 			</Button>
 		</div>
 	);
