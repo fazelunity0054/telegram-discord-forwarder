@@ -81,7 +81,7 @@ export async function handleAction<Source extends ForwardChannel>(
 			...Array.from(_message.mentions.roles.values()),
 			...Array.from(_message.mentions.members?.values() || [])
 		].forEach((ch: any) => {
-			message.content = message.content?.replace(ch.toString(), ch.name ?? ch.displayName ?? ch?.user?.displayName ?? ch?.label ?? ch?.user?.username ?? ch?.nickname)
+			message.content = message.content?.replaceAll(ch.toString(), ch.name ?? ch.displayName ?? ch?.user?.displayName ?? ch?.label ?? ch?.user?.username ?? ch?.nickname)
 		})
 	}
 
